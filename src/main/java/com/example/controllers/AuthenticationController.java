@@ -10,22 +10,26 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.dto.AuthenticationDTO;
+import com.example.entities.User;
+import com.example.securityconfig.TokenConfig;
 
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("auth")
+@RequestMapping("/auth")
 public class AuthenticationController {
     @Autowired
     private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private TokenConfig tokenConfig;
+
 
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody @Valid AuthenticationDTO data) {
         var usernamePassword = new UsernamePasswordAuthenticationToken(data.username(), data.password());
         var auth = authenticationManager.authenticate(usernamePassword);
-
-        System.out.println(auth);
-
-        return ResponseEntity.ok().build();
+        var token = tokenConfig.generateToken((User) auth.getPrincipal());
+        return ResponseEntity.ok(token);
     }
 }
